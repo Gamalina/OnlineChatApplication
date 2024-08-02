@@ -1,50 +1,102 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using OnlineChatApplication.Models;
-using System.Text;
-using System.Security.Cryptography;
+using Microsoft.EntityFrameworkCore;
 using OnlineChatApplication.Data;
+using OnlineChatApplication.Models;
 using OnlineChatApplication.MailService;
+using System;
+using System.Threading.Tasks;
+using System.Security.Cryptography;
+using System.Text;
 
-namespace OnlineChatApplication.Controllers
+public class AccountController : Controller
 {
-    public class AccountController : Controller
+    private readonly ApplicationDbContext _context;
+    private readonly EmailService _emailService;
+
+    public AccountController(ApplicationDbContext context, EmailService emailService)
     {
+        _context = context;
+        _emailService = emailService;
+    }
 
-        private readonly ApplicationDbContext _context;
+    [HttpGet]
+    public IActionResult ResetPasswordRequest()
+    {
+        return View();
+    }
 
-        public AccountController(ApplicationDbContext context)
+    [HttpPost]
+    public async Task<IActionResult> ResetPasswordRequest(ResetPasswordRequestViewModel model)
+    {
+        if (ModelState.IsValid)
         {
-            _context = context;
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Register(string username, string password, string email)
-        {
-            var user = new User
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
+            if (user != null)
             {
-                Username = username,
-                PasswordHash = ComputeSha256Hash(password),
-                Email = email
-            };
+                var resetToken = Guid.NewGuid().ToString();
+                user.ResetToken = resetToken;
+                await _context.SaveChangesAsync();
 
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+                var resetLink = Url.Action("ResetPassword", "Account", new { token = resetToken }, Request.Scheme);
+                var message = $"Please reset your password by clicking here: {resetLink}";
 
-            return Ok();
-        }
-
-        private string ComputeSha256Hash(string rawData)
-        {
-            using (SHA256 sha256Hash = SHA256.Create())
-            {
-                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(rawData));
-                StringBuilder builder = new StringBuilder();
-                for (int i = 0; i < bytes.Length; i++)
-                {
-                    builder.Append(bytes[i].ToString("x2"));
-                }
-                return builder.ToString();
+                await _emailService.SendEmailAsync(model.Email, "Password Reset", message);
             }
+
+            return RedirectToAction("ResetPasswordRequestConfirmation");
         }
+
+        return View(model);
+    }
+
+    [HttpGet]
+    public IActionResult ResetPassword(string token)
+    {
+        var model = new ResetPasswordViewModel { Token = token };
+        return View(model);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+    {
+        if (ModelState.IsValid)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.ResetToken == model.Token);
+            if (user != null)
+            {
+                user.PasswordHash = ComputeSha256Hash(model.NewPassword);
+                user.ResetToken = null;
+                await _context.SaveChangesAsync();
+                return RedirectToAction("ResetPasswordConfirmation");
+            }
+
+            ModelState.AddModelError(string.Empty, "Invalid token.");
+        }
+
+        return View(model);
+    }
+
+    private string ComputeSha256Hash(string rawData)
+    {
+        using (SHA256 sha256Hash = SHA256.Create())
+        {
+            byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(rawData));
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                builder.Append(bytes[i].ToString("x2"));
+            }
+            return builder.ToString();
+        }
+    }
+
+    public IActionResult ResetPasswordRequestConfirmation()
+    {
+        return View();
+    }
+
+    public IActionResult ResetPasswordConfirmation()
+    {
+        return View();
     }
 }

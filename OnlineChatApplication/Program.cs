@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using OnlineChatApplication.Data;
+using OnlineChatApplication.MailService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +9,9 @@ builder.Services.AddControllersWithViews();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+
+builder.Services.AddTransient<EmailService>();
 
 var app = builder.Build();
 

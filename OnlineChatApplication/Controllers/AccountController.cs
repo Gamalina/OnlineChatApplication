@@ -3,11 +3,13 @@ using OnlineChatApplication.Models;
 using System.Text;
 using System.Security.Cryptography;
 using OnlineChatApplication.Data;
+using OnlineChatApplication.MailService;
 
 namespace OnlineChatApplication.Controllers
 {
     public class AccountController : Controller
     {
+
         private readonly ApplicationDbContext _context;
 
         public AccountController(ApplicationDbContext context)

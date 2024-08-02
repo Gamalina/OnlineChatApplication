@@ -1,0 +1,41 @@
+﻿@model OnlineChatApplication.Models.RegisterViewModel
+
+@{
+    ViewData["Title"] = "Register";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<form asp-action="Register" method="post">
+    <div class="form-group">
+        <label asp-for="Email" class="control-label"></label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Username" class="control-label"></label>
+        <input asp-for="Username" class="form-control" />
+        <span asp-validation-for="Username" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Password" class="control-label"></label>
+        <input asp-for="Password" class="form-control" />
+        <span asp-validation-for="Password" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Biography" class="control-label"></label>
+        <input asp-for="Biography" class="form-control" />
+        <span asp-validation-for="Biography" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Gender" class="control-label"></label>
+        <input asp-for="Gender" class="form-control" />
+        <span asp-validation-for="Gender" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Age" class="control-label"></label>
+        <input asp-for="Age" class="form-control" />
+        <span asp-validation-for="Age" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Register</button>
+</form>

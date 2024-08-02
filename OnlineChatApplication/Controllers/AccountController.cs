@@ -19,6 +19,44 @@ public class AccountController : Controller
         _emailService = emailService;
     }
 
+
+    [HttpGet]
+    public IActionResult Register()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Register(RegisterViewModel model)
+    {
+        if (ModelState.IsValid)
+        {
+            var user = new User
+            {
+                Email = model.Email,
+                Username = model.Username,
+                PasswordHash = ComputeSha256Hash(model.Password)
+            };
+
+            var userProfile = new UserProfile
+            {
+                Biography = model.Biography,
+                Gender = model.Gender,
+                Age = model.Age,
+                User = user
+            };
+
+            _context.Users.Add(user);
+            _context.UserProfiles.Add(userProfile);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("RegisterConfirmation");
+        }
+
+        return View(model);
+    }
+
+
     [HttpGet]
     public IActionResult ResetPasswordRequest()
     {
@@ -96,6 +134,11 @@ public class AccountController : Controller
     }
 
     public IActionResult ResetPasswordConfirmation()
+    {
+        return View();
+    }
+
+    public IActionResult RegisterConfirmation()
     {
         return View();
     }

@@ -38,7 +38,8 @@ public class AccountController : Controller
             {
                 Email = model.Email,
                 Username = model.Username,
-                PasswordHash = ComputeSha256Hash(model.Password)
+                PasswordHash = ComputeSha256Hash(model.Password),
+                ResetToken = string.Empty
             };
 
             var userProfile = new UserProfile
@@ -155,7 +156,7 @@ public class AccountController : Controller
             if (user != null)
             {
                 user.PasswordHash = ComputeSha256Hash(model.NewPassword);
-                user.ResetToken = null;
+                user.ResetToken = string.Empty;
                 await _context.SaveChangesAsync();
                 return RedirectToAction("ResetPasswordConfirmation");
             }
